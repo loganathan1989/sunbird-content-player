@@ -31,9 +31,6 @@ var TelemetrySyncManager = {
             instance.syncBatch(instance);
         }, SYNC_INTERVAL);
     },
-    isBatchPoolEmpty: function() {
-        return !this.getBatchPoolFromCache() ? true : false
-    },
     sendTelemetry: function(event) {
         var instance = TelemetrySyncManager;
         instance.batch.push(Object.assign({}, event.detail));
