@@ -4,7 +4,6 @@
  * @author Krushanu Mohapatra <Krushanu.Mohapatra@tarento.com>
  * @author Manjunath Davanam <manjunathd@ilimi.in>
  */
-
 var TelemetrySyncManager = {
 
     /**
@@ -16,15 +15,20 @@ var TelemetrySyncManager = {
     BATCH_POOL_NAME: 'EkTelemetryEvents',
     BATCH_LIMIT_PER_CALL: 1,
     timer: undefined,
+    isSyncInProgress: false,
     init: function() {
         var instance = this;
         document.addEventListener('TelemetryEvent', this.sendTelemetry);
+        window.onbeforeunload = function() {
+            instance.updateBatchPool(instance.batch);
+        }
     },
     startTimer: function() {
         var SYNC_INTERVAL = EkTelemetry.config.syncInterval || 30000; // 30 sec default
         var instance = this;
-        timer = setInterval(function() {
+        timer = setTimeout(function() {
             console.info("Sync is failed, Hence auto sync is happening");
+            clearTimeout(timer);
             instance.syncBatch(instance);
         }, SYNC_INTERVAL);
     },
@@ -35,10 +39,9 @@ var TelemetrySyncManager = {
         var instance = TelemetrySyncManager;
         instance.batch.push(Object.assign({}, event.detail));
         if (instance.batch.length >= EkTelemetry.config.batchsize) {
-            var eventsBatch = instance.batch.splice(0, EkTelemetry.config.batchsize);
-            instance.batchPool.push(eventsBatch);
-            instance.setBatchPoolInCache(instance.batchPool);
-            instance.syncBatch(instance);
+            var batchEvents = instance.batch.splice(0, EkTelemetry.config.batchsize);
+            instance.updateBatchPool(batchEvents);
+            !instance.isSyncInProgress && instance.syncBatch(instance);
         }
     },
     syncBatch: function(instance) {
@@ -48,32 +51,34 @@ var TelemetrySyncManager = {
             if (res) {
                 instance.syncBatch(instance);
             } else {
-                instance.updateBatchPool(batchEvents);
                 instance.startTimer();
             }
         });
     },
     updateBatchPool: function(batch) {
-        var cachedBatchPool = this.getBatchPool();
-        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(cachedBatchPool.splice(0, 0, batch)));
+        var batchPool = this.getBatchPool();
+        batchPool = !batchPool ? [] : batchPool
+        batchPool.unshift(batch);
+        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(batchPool));
     },
     getBatchPool: function() {
         return JSON.parse(window.localStorage.getItem(this.BATCH_POOL_NAME));
     },
     getBatch: function() {
         var data = JSON.parse(JSON.stringify(this.getBatchPool()));
-        var splicedData = data.splice(0, 1);
-        this.setBatchPoolInCache(data);
+        var splicedData = data.pop();
+        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(data));
         return splicedData;
-        // TODO: remove from cache after success
     },
     sync: function(batch, callback) {
         var instance = this;
         var ERROR_MESSAGE = 'Few events are failed to sync hence stack is updated';
         if (batch && batch.length) {
+            instance.isSyncInProgress = true;
             instance.doAjaxCall(batch, function(err, res) {
+                instance.isSyncInProgress = false;
                 if (err) {
-                    instance.setBatchPoolInCache(batch);
+                    instance.updateBatchPool(batch);
                     !instance.timer && instance.startTimer();
                     callback(ERROR_MESSAGE, undefined);
                 } else {
@@ -84,7 +89,6 @@ var TelemetrySyncManager = {
     },
     doAjaxCall: function(events, callback) {
         var instance = TelemetrySyncManager;
-        var Telemetry = EkTelemetry || Telemetry;
         var telemetryObj = {
             "id": "ekstep.telemetry",
             "ver": EkTelemetry._version,
@@ -92,10 +96,10 @@ var TelemetrySyncManager = {
             "events": events
         };
         var headersParam = {};
-        if ('undefined' != typeof Telemetry.config.authtoken)
-            headersParam["Authorization"] = 'Bearer ' + Telemetry.config.authtoken;
+        if ('undefined' != typeof EkTelemetry.config.authtoken)
+            headersParam["Authorization"] = EkTelemetry.config.authtoken;
 
-        var fullPath = Telemetry.config.host + Telemetry.config.apislug + Telemetry.config.endpoint;
+        var fullPath = EkTelemetry.config.host + EkTelemetry.config.apislug + EkTelemetry.config.endpoint;
         headersParam['dataType'] = 'json';
         headersParam["Content-Type"] = "application/json";
         jQuery.ajax({
@@ -110,6 +114,7 @@ var TelemetrySyncManager = {
             callback(new Error('Sync failed!', error.status), undefined);
         });
     },
+
 }
 if (typeof document != 'undefined') {
     TelemetrySyncManager.init();
