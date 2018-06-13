@@ -13,7 +13,6 @@ var TelemetrySyncManager = {
     batch: [],
     batchPool: [],
     BATCH_POOL_NAME: 'EkTelemetryEvents',
-    BATCH_LIMIT_PER_CALL: 1,
     timer: undefined,
     isSyncInProgress: false,
     init: function() {
