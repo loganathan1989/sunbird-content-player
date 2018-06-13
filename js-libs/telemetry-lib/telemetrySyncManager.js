@@ -2,41 +2,87 @@
  * This is responsible for syncing of Telemetry
  * @class TelemetrySyncManager
  * @author Krushanu Mohapatra <Krushanu.Mohapatra@tarento.com>
+ * @author Manjunath Davanam <manjunathd@ilimi.in>
  */
 
 var TelemetrySyncManager = {
 
     /**
-     * This is the telemetry data for the perticular stage.
-     * @member {object} _teleData
+     * This is the telemetry data for the particular stage.
      * @memberof TelemetryPlugin
      */
-    _teleData: [],
+    batch: [],
+    batchPool: [],
+    BATCH_POOL_NAME: 'EkTelemetryEvents',
     init: function() {
         var instance = this;
+        var SYNC_INTERVAL = 30000; // 30 sec default
         document.addEventListener('TelemetryEvent', this.sendTelemetry);
+        setInterval(function() {
+            console.log("Making sync event call");
+            if (!instance.isBatchPoolEmpty()) {
+                instance.syncEvents(function(err, res) {
+                    err && console.warn(err);
+                });
+            }
+        }, SYNC_INTERVAL);
+    },
+    isBatchPoolEmpty: function() {
+        return !this.getBatchPoolFromCache() ? true : false
     },
     sendTelemetry: function(event) {
-        var telemetryEvent = event.detail;
-        console.log("Telemetry Events ", telemetryEvent);
         var instance = TelemetrySyncManager;
-        instance._teleData.push(Object.assign({}, telemetryEvent));
-        if ((telemetryEvent.eid.toUpperCase() === "END") || (instance._teleData.length >= Telemetry.config.batchsize)) {
-            TelemetrySyncManager.syncEvents();
+        instance.batch.push(Object.assign({}, event.detail));
+        if (instance.batch.length >= EkTelemetry.config.batchsize) {
+            instance.updateBatchPool(instance.batch.splice(0, EkTelemetry.config.batchsize));
         }
     },
-    updateEventStack: function(events) {
-        TelemetrySyncManager._teleData = TelemetrySyncManager._teleData.concat(events);
+    updateBatchPool: function(batch) {
+        this.batchPool.push(batch);
+        var data = this.getBatchPoolFromCache();
+        if (!data) {
+            this.setBatchPoolInCache(this.batchPool);
+        } else {
+            data = data.concat(this.batchPool);
+            this.setBatchPoolInCache(data);
+        }
     },
-    syncEvents: function() {
-        var Telemetry = EkTelemetry || Telemetry;
+    setBatchPoolInCache: function(batchPool) {
+        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(batchPool));
+    },
+    getBatchPoolFromCache: function() {
+        return JSON.parse(window.localStorage.getItem(this.BATCH_POOL_NAME));
+    },
+    getLatestBatchFromPool: function(limit) {
+        var data = JSON.parse(JSON.stringify(this.getBatchPoolFromCache()));
+        var splicedData = data.splice(0, limit);
+        this.setBatchPoolInCache(data);
+        return splicedData;
+    },
+    syncEvents: function(callback) {
+        var instance = this;
+        var ERROR_MESSAGE = 'Few events are failed to sync hence stack is updated';
+        var BATCH_LIMIT_PER_CALL = 1; // Default;
+        var batch = instance.getLatestBatchFromPool(BATCH_LIMIT_PER_CALL);
+        if (batch.length) {
+            instance.doAjaxCall(batch, function(err, res) {
+                if (err) {
+                    instance.updateBatchPool(batch);
+                    callback(ERROR_MESSAGE, undefined);
+                } else {
+                    callback(undefined, true);
+                }
+            })
+        }
+    },
+    doAjaxCall: function(events, callback) {
         var instance = TelemetrySyncManager;
-        var telemetryData = instance._teleData.splice(0, Telemetry.config.batchsize);
+        var Telemetry = EkTelemetry || Telemetry;
         var telemetryObj = {
             "id": "ekstep.telemetry",
-            "ver": Telemetry._version,
+            "ver": EkTelemetry._version,
             "ets": (new Date()).getTime(),
-            "events": telemetryData
+            "events": events
         };
         var headersParam = {};
         if ('undefined' != typeof Telemetry.config.authtoken)
@@ -52,15 +98,11 @@ var TelemetrySyncManager = {
             data: JSON.stringify(telemetryObj)
         }).done(function(resp) {
             console.log("Telemetry API success", resp);
+            callback(undefined, true);
         }).fail(function(error, textStatus, errorThrown) {
-            instance.updateEventStack(telemetryData);
-            if (error.status == 403) {
-                console.error("Authentication error: ", error);
-            } else {
-                console.log("Error while Telemetry sync to server: ", error);
-            }
+            callback(new Error('Sync failed!', error.status), undefined);
         });
-    }
+    },
 }
 if (typeof document != 'undefined') {
     TelemetrySyncManager.init();
