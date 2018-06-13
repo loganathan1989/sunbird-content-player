@@ -14,17 +14,18 @@ var TelemetrySyncManager = {
     batch: [],
     batchPool: [],
     BATCH_POOL_NAME: 'EkTelemetryEvents',
+    BATCH_LIMIT_PER_CALL: 1,
+    timer: undefined,
     init: function() {
         var instance = this;
-        var SYNC_INTERVAL = 30000; // 30 sec default
         document.addEventListener('TelemetryEvent', this.sendTelemetry);
-        setInterval(function() {
-            console.log("Making sync event call");
-            if (!instance.isBatchPoolEmpty()) {
-                instance.syncEvents(function(err, res) {
-                    err && console.warn(err);
-                });
-            }
+    },
+    startTimer: function() {
+        var SYNC_INTERVAL = EkTelemetry.config.syncInterval || 30000; // 30 sec default
+        var instance = this;
+        timer = setInterval(function() {
+            console.info("Sync is failed, Hence auto sync is happening");
+            instance.syncBatch(instance);
         }, SYNC_INTERVAL);
     },
     isBatchPoolEmpty: function() {
@@ -34,40 +35,46 @@ var TelemetrySyncManager = {
         var instance = TelemetrySyncManager;
         instance.batch.push(Object.assign({}, event.detail));
         if (instance.batch.length >= EkTelemetry.config.batchsize) {
-            instance.updateBatchPool(instance.batch.splice(0, EkTelemetry.config.batchsize));
+            var eventsBatch = instance.batch.splice(0, EkTelemetry.config.batchsize);
+            instance.batchPool.push(eventsBatch);
+            instance.setBatchPoolInCache(instance.batchPool);
+            instance.syncBatch(instance);
         }
+    },
+    syncBatch: function(instance) {
+        var batchEvents = instance.getBatch();
+        instance.sync(batchEvents, function(err, res) {
+            console.log("Err", err);
+            if (res) {
+                instance.syncBatch(instance);
+            } else {
+                instance.updateBatchPool(batchEvents);
+                instance.startTimer();
+            }
+        });
     },
     updateBatchPool: function(batch) {
-        this.batchPool.push(batch);
-        var data = this.getBatchPoolFromCache();
-        if (!data) {
-            this.setBatchPoolInCache(this.batchPool);
-        } else {
-            data = data.concat(this.batchPool);
-            this.setBatchPoolInCache(data);
-        }
+        var cachedBatchPool = this.getBatchPool();
+        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(cachedBatchPool.splice(0, 0, batch)));
     },
-    setBatchPoolInCache: function(batchPool) {
-        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(batchPool));
-    },
-    getBatchPoolFromCache: function() {
+    getBatchPool: function() {
         return JSON.parse(window.localStorage.getItem(this.BATCH_POOL_NAME));
     },
-    getLatestBatchFromPool: function(limit) {
-        var data = JSON.parse(JSON.stringify(this.getBatchPoolFromCache()));
-        var splicedData = data.splice(0, limit);
+    getBatch: function() {
+        var data = JSON.parse(JSON.stringify(this.getBatchPool()));
+        var splicedData = data.splice(0, 1);
         this.setBatchPoolInCache(data);
         return splicedData;
+        // TODO: remove from cache after success
     },
-    syncEvents: function(callback) {
+    sync: function(batch, callback) {
         var instance = this;
         var ERROR_MESSAGE = 'Few events are failed to sync hence stack is updated';
-        var BATCH_LIMIT_PER_CALL = 1; // Default;
-        var batch = instance.getLatestBatchFromPool(BATCH_LIMIT_PER_CALL);
-        if (batch.length) {
+        if (batch && batch.length) {
             instance.doAjaxCall(batch, function(err, res) {
                 if (err) {
-                    instance.updateBatchPool(batch);
+                    instance.setBatchPoolInCache(batch);
+                    !instance.timer && instance.startTimer();
                     callback(ERROR_MESSAGE, undefined);
                 } else {
                     callback(undefined, true);
