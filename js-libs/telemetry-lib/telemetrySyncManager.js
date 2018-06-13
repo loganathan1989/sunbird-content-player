@@ -93,7 +93,7 @@ var TelemetrySyncManager = {
         };
         var headersParam = {};
         if ('undefined' != typeof EkTelemetry.config.authtoken)
-            headersParam["Authorization"] = EkTelemetry.config.authtoken;
+            headersParam["Authorization"] = 'Bearer ' + EkTelemetry.config.authtoken;
 
         var fullPath = EkTelemetry.config.host + EkTelemetry.config.apislug + EkTelemetry.config.endpoint;
         headersParam['dataType'] = 'json';
