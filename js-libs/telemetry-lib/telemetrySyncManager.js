@@ -1,115 +1,96 @@
-/**
- * This is responsible for syncing of Telemetry
- * @class TelemetrySyncManager
- * @author Krushanu Mohapatra <Krushanu.Mohapatra@tarento.com>
- * @author Manjunath Davanam <manjunathd@ilimi.in>
- */
-var TelemetrySyncManager = {
+var TelemetryCache = {
+    _cache: [],
+    CACHE_NAME: 'EkTelemetryEvents',
+    push: function(item) {
+        // Add element to bottom of the cache
+        this._cache.push(item);
+        this.sync();
+    },
+    shift: function() {
+        // Return element from top of cache
+        var topElement = this._cache.shift();
+        this.sync();
+        return topElement;
+    },
+    unshift: function(item) {
+        // Add element to top of the cache
+        this._cache.unshift(item);
+        this.sync();
+    },
+    sync: function() {
+        window.localStorage.setItem(this.CACHE_NAME, JSON.stringify(this._cache));
+    },
+    init: function() {
+        var cacheStore = JSON.parse(window.localStorage.getItem(this.CACHE_NAME));
+        this._cache = cacheStore ? cacheStore : [];
+    },
+    getCache: function(limit) {
+        var batches = this._cache.splice(0, limit);
+        this.sync();
+        return batches
+    }
+};
 
-    /**
-     * This is the telemetry data for the particular stage.
-     * @memberof TelemetryPlugin
-     */
-    batch: [],
-    batchPool: [],
-    BATCH_POOL_NAME: 'EkTelemetryEvents',
-    timer: undefined,
-    isSyncInProgress: false,
+var TelemetrySyncManager = {
+    _batch: [],
+    CACHE_LIMIT: 10,
+    SYNC_INTERVAL_PER_CALL: 30000, // default, 30sec
     init: function() {
         var instance = this;
-        document.addEventListener('TelemetryEvent', this.sendTelemetry);
+        TelemetryCache.init();
+        document.addEventListener('TelemetryEvent', this.telemetryEvent);
         window.onbeforeunload = function() {
-            instance.updateBatchPool(instance.batch);
+            instance._batch.length && TelemetryCache.push(instance._batch);
         }
+        setInterval(function() {
+            instance.sendTelemetry(TelemetryCache.getCache(instance.CACHE_LIMIT), function(error, resp) {
+                error && TelemetryCache.unshift(resp);
+            });
+        }, EkTelemetry.config.syncInterval || instance.SYNC_INTERVAL_PER_CALL);
     },
-    startTimer: function() {
-        var SYNC_INTERVAL = EkTelemetry.config.syncInterval || 30000; // 30 sec default
-        var instance = this;
-        timer = setTimeout(function() {
-            console.info("Sync is failed, Hence auto sync is happening");
-            clearTimeout(timer);
-            instance.syncBatch(instance);
-        }, SYNC_INTERVAL);
-    },
-    sendTelemetry: function(event) {
+    telemetryEvent: function(event) {
         var instance = TelemetrySyncManager;
-        instance.batch.push(Object.assign({}, event.detail));
-        if (instance.batch.length >= EkTelemetry.config.batchsize) {
-            var batchEvents = instance.batch.splice(0, EkTelemetry.config.batchsize);
-            instance.updateBatchPool(batchEvents);
-            !instance.isSyncInProgress && instance.syncBatch(instance);
+        instance._batch.push(Object.assign({}, event.detail));
+        if (instance._batch.length >= EkTelemetry.config.batchsize) {
+            TelemetryCache.push(instance._batch.splice(0, EkTelemetry.config.batchsize));
         }
     },
-    syncBatch: function(instance) {
-        var batchEvents = instance.getBatch();
-        instance.sync(batchEvents, function(err, res) {
-            console.log("Err", err);
-            if (res) {
-                instance.syncBatch(instance);
-            } else {
-                instance.startTimer();
-            }
+    sendTelemetry: function(batches, callback) {
+        var HEADER = this.getHeaders();
+        var URL = EkTelemetry.config.host + EkTelemetry.config.apislug + EkTelemetry.config.endpoint;
+        batches.forEach(function(index) {
+            (function(batch) {
+                if (batch && batch.length) {
+                    var instance = TelemetrySyncManager;
+                    var telemetryObj = {
+                        "id": "ekstep.telemetry",
+                        "ver": EkTelemetry._version,
+                        "ets": (new Date()).getTime(),
+                        "events": batch // batch of events [{},{}]
+                    };
+                    jQuery.ajax({
+                        url: URL,
+                        type: "POST",
+                        headers: HEADER,
+                        data: JSON.stringify(telemetryObj)
+                    }).done(function(resp) {
+                        console.log("Telemetry API success", resp);
+                        callback(undefined, resp);
+                    }).fail(function(error, textStatus, errorThrown) {
+                        callback(new Error('Sync failed!', error.status), batch);
+                    });
+                }
+            }(index))
         });
     },
-    updateBatchPool: function(batch) {
-        var batchPool = this.getBatchPool();
-        batchPool = !batchPool ? [] : batchPool
-        batchPool.unshift(batch);
-        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(batchPool));
-    },
-    getBatchPool: function() {
-        return JSON.parse(window.localStorage.getItem(this.BATCH_POOL_NAME));
-    },
-    getBatch: function() {
-        var data = JSON.parse(JSON.stringify(this.getBatchPool()));
-        var splicedData = data.pop();
-        window.localStorage.setItem(this.BATCH_POOL_NAME, JSON.stringify(data));
-        return splicedData;
-    },
-    sync: function(batch, callback) {
-        var instance = this;
-        var ERROR_MESSAGE = 'Few events are failed to sync hence stack is updated';
-        if (batch && batch.length) {
-            instance.isSyncInProgress = true;
-            instance.doAjaxCall(batch, function(err, res) {
-                instance.isSyncInProgress = false;
-                if (err) {
-                    instance.updateBatchPool(batch);
-                    !instance.timer && instance.startTimer();
-                    callback(ERROR_MESSAGE, undefined);
-                } else {
-                    callback(undefined, true);
-                }
-            })
-        }
-    },
-    doAjaxCall: function(events, callback) {
-        var instance = TelemetrySyncManager;
-        var telemetryObj = {
-            "id": "ekstep.telemetry",
-            "ver": EkTelemetry._version,
-            "ets": (new Date()).getTime(),
-            "events": events
-        };
+    getHeaders: function() {
         var headersParam = {};
         if ('undefined' != typeof EkTelemetry.config.authtoken)
             headersParam["Authorization"] = 'Bearer ' + EkTelemetry.config.authtoken;
-
-        var fullPath = EkTelemetry.config.host + EkTelemetry.config.apislug + EkTelemetry.config.endpoint;
         headersParam['dataType'] = 'json';
         headersParam["Content-Type"] = "application/json";
-        jQuery.ajax({
-            url: fullPath,
-            type: "POST",
-            headers: headersParam,
-            data: JSON.stringify(telemetryObj)
-        }).done(function(resp) {
-            console.log("Telemetry API success", resp);
-            callback(undefined, true);
-        }).fail(function(error, textStatus, errorThrown) {
-            callback(new Error('Sync failed!', error.status), undefined);
-        });
-    },
+        return headersParam;
+    }
 
 }
 if (typeof document != 'undefined') {
