@@ -72,8 +72,17 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         }
         org.ekstep.pluginframework.resourceManager.loadResource(epubPath, 'TEXT', function (err, data) {
             if (err) {
-                err.message = 'Unable to open the content.'
-                instance.throwError(err)
+                epubPath = "https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/assets/" + content.identifier + "/" + data.artifactUrl;
+                org.ekstep.pluginframework.resourceManager.loadResource(epubPath, 'TEXT', function (err, data) {
+                    if (err) {
+                        err.message = 'Unable to open the content.'
+                        instance.throwError(err)
+                    } else {
+                        EkstepRendererAPI.dispatchEvent("renderer:splash:hide");
+                        EkstepRendererAPI.dispatchEvent('renderer:overlay:show');
+                        instance.renderEpub(epubPath);
+                    }
+                })
             } else {
                 EkstepRendererAPI.dispatchEvent("renderer:splash:hide");
                 EkstepRendererAPI.dispatchEvent('renderer:overlay:show');

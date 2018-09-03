@@ -141,13 +141,26 @@ org.ekstep.contentrenderer.baseLauncher.extend({
                 instance.load(dataObj);
             }, null, 'xml')
             .fail(function(err) {
-                EkstepRendererAPI.logErrorEvent(err, { 'severity': 'fatal', 'type': 'content', 'action': 'play' });
-                EventBus.dispatch("renderer:alert:show", undefined, {
-                  title: "Error",
-                  text: "Invalid ECML please correct the Ecml",
-                  type: "error",
-                  data: err
-                });
+                content.previewUrl = "https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/content/ecml/" + content.identifier + "-latest";
+                globalConfig.basepath = content.previewUrl;
+
+                jQuery.get(globalConfig.basepath + '/index.ecml', function(data) {
+                    var dataObj = {
+                        'body': data,
+                        'canvasId': canvasId,
+                        'path': globalConfig.basepath
+                    }
+                    instance.load(dataObj);
+                }, null, 'xml')
+                .fail(function(err) {
+                    EkstepRendererAPI.logErrorEvent(err, { 'severity': 'fatal', 'type': 'content', 'action': 'play' });
+                    EventBus.dispatch("renderer:alert:show", undefined, {
+                    title: "Error",
+                    text: "Invalid ECML please correct the Ecml",
+                    type: "error",
+                    data: err
+                    });
+                })
             });
     },
     /**

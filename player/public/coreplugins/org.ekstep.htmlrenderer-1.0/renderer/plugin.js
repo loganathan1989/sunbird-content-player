@@ -37,14 +37,23 @@
     validateSrc: function(path, iframe) {
         var instance = this;
         org.ekstep.pluginframework.resourceManager.loadResource(path, 'TEXT', function(err, data) {
-            if (err) {
-                showToaster("error", "Sorry!!.. Unable to open the Game!",{timeOut:200000});
-                EkstepRendererAPI.logErrorEvent('index.html file not found.',{'type':'content','action':'play','severity':'fatal'});
+            if (!data) {
+                var streamPath = "https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/content/html/" + content.identifier + "-latest/index.html";
+                iframe.src = streamPath;
+                org.ekstep.pluginframework.resourceManager.loadResource(streamPath, 'TEXT', function(err, data) {
+                    if (!data) {
+                        showToaster("error", "Sorry!!.. Unable to open the Game!",{timeOut:200000});
+                        EkstepRendererAPI.logErrorEvent('index.html file not found.',{'type':'content','action':'play','severity':'fatal'});
+                    } else {
+                        EkstepRendererAPI.dispatchEvent("renderer:splash:hide");
+                        instance.configOverlay();
+                        instance.addToGameArea(iframe);
+                    }
+                })
             } else {
                 EkstepRendererAPI.dispatchEvent("renderer:splash:hide");
                 instance.configOverlay();
                 instance.addToGameArea(iframe);
-
             }
         });        
     },
