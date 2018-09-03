@@ -417,6 +417,10 @@ window.EkstepRendererAPI = {
         return AssetManager.strategy.assetMap[assetId];
     },
 
+    isAudioMuted: function(){
+        return AudioManager.muted;
+    },
+
     /**
      * Loads the asset of teh given assetId
      * @param assetId {string} assetId of the desired asset
