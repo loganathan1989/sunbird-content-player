@@ -58,6 +58,14 @@ org.ekstep.contentrenderer.baseLauncher.extend({
     _loadVideo: function(path) {
         var source = document.createElement("source");
         source.src = path;
+        source.onerror = function() {
+            var regex = new RegExp("^(file):///", "i");
+            if (regex.test(this.src)) {
+                var videoPath = "https://ekstep-public-qa.s3-ap-south-1.amazonaws.com/assets/" + content.artifactUrl;
+                this.src = videoPath;
+                video.load();
+            }
+        };
         video.appendChild(source);
         this.addvideoListeners(video);
         this.videoPlayer = video;
