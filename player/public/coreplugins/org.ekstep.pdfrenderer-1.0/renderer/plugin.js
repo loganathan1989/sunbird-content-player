@@ -39,8 +39,9 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         var path = undefined;
         var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
         if (window.cordova || !isbrowserpreview) {
-            var prefix_url = globalConfigObj.basepath || '';
-            path = prefix_url + "/" + data.artifactUrl + "?" + new Date().getSeconds();
+            // var prefix_url = globalConfigObj.basepath || '';
+            // path = prefix_url + "/" + data.artifactUrl + "?" + new Date().getSeconds();
+            path = org.ekstep.contentrenderer.getBasePath(data);
         } else {
             path = data.artifactUrl + "?" + new Date().getSeconds();
         }

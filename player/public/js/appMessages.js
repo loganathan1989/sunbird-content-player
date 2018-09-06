@@ -58,3 +58,15 @@ window.AppLables = {
 	"tryAgain": "Try Again",
 	"noDeeplinkBasePath": "Content is not downloaded & 'deeplinkBasePath' is not defined"
 }
+
+window.mimeType = {
+    ecml: 'application/vnd.ekstep.ecml-archive',
+    html: 'application/vnd.ekstep.html-archive',
+    h5p: 'application/vnd.ekstep.h5p-archive',
+    epub: 'application/epub',
+    mp4: 'video/mp4',
+    youtube: 'video/x-youtube',
+    webm: 'video/webm',
+    pdf: 'application/pdf',
+    xurl: 'text/x-url'
+}

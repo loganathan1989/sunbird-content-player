@@ -25,10 +25,11 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         this._super();
         var data = _.clone(content);
         this.heartBeatData.stageId = content.mimeType === 'video/x-youtube' ? 'youtubestage' : 'videostage';
-        var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
+        // var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
         if (window.cordova || !isbrowserpreview) {
-            var prefix_url = globalConfigObj.basepath || '';
-            path = prefix_url + "/" + data.artifactUrl;
+            // var prefix_url = globalConfigObj.basepath || '';
+            // path = prefix_url + "/" + data.artifactUrl;
+            path = org.ekstep.contentrenderer.getBasePath(data);
         } else {
             path = data.artifactUrl;
         }

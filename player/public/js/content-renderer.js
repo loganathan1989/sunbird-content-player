@@ -354,25 +354,35 @@ org.ekstep.contentrenderer.device = function() {
 org.ekstep.contentrenderer.getBasePath = function(contentObj) {
     var config = EkstepRendererAPI.getGlobalConfig();
     var basePath = config.basepath || contentObj.baseDir;
-    if (config.context.streaming) {
-        // switch (contentObj.mimeType) {
-        //     case window.mimeType.ecml:
+    switch (contentObj.mimeType) {
+        case window.mimeType.ecml:
+            if (config.context.streaming) {
                 basePath = contentObj.previewUrl;
-                // break;
-            // case window.mimeType.html:
-            // case window.mimeType.h5p:
-                // break;
-            // case window.mimeType.epub:
-                // break;
-            // case window.mimeType.mp4:
-            // case window.mimeType.youtube:
-            // case window.mimeType.webm:
-                // break;
-            // case window.mimeType.pdf:
-                // break;
-            // case window.mimeType.xurl:
-                // break;
-        // }
+            }
+            break;
+        case window.mimeType.html:
+        case window.mimeType.h5p:
+            if (config.context.streaming) {
+                basePath = contentObj.previewUrl;
+            }
+            break;
+        case window.mimeType.epub:
+            if (config.context.streaming) {
+                basePath = contentObj.previewUrl;
+            } else {
+                basePath = basePath + "/";
+            }
+            break;
+        case window.mimeType.mp4:
+        case window.mimeType.youtube:
+        case window.mimeType.webm:
+        case window.mimeType.pdf:
+            if (config.context.streaming) {
+                basePath = contentObj.previewUrl;
+            } else {
+                basePath = basePath + "/" + data.artifactUrl;
+            }
+            break;
     }
     return basePath;
 }

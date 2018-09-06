@@ -23,8 +23,7 @@
         var isMobile = window.cordova ? true : false;
         var envHTML = isMobile ? "app" : "portal";
         var launchData = {"env": envHTML, "envpath": 'dev'};
-        var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
-        var prefix_url = isbrowserpreview ? this.getAsseturl(data) : globalConfigObj.basepath;
+        var prefix_url = isbrowserpreview ? this.getAsseturl(data) : org.ekstep.contentrenderer.getBasePath(data);
         var path = prefix_url + '/index.html?contentId=' + data.identifier + '&launchData=' + JSON.stringify(launchData) + "&appInfo=" + JSON.stringify(GlobalContext.config.appInfo);
         if (isbrowserpreview) {
             path += "&flavor=" + "t=" + getTime();

@@ -41,9 +41,10 @@ org.ekstep.contentrenderer.baseLauncher.extend({
      */
     start: function(evt, renderObj) {
         this._super();
-        var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
+        // var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
         var instance = this;
         renderObj = content;
+        var basePath = org.ekstep.contentrenderer.getBasePath(renderObj);
         if (_.isUndefined(renderObj)) return;
         this.initContentProgress();
         if(isbrowserpreview){
@@ -60,9 +61,9 @@ org.ekstep.contentrenderer.baseLauncher.extend({
                 }
                 instance.load(dataObj);
             } else {
-                instance.initByJSON(globalConfigObj.basepath, 'gameCanvas');
+                instance.initByJSON(basePath, 'gameCanvas');
                 if (typeof sensibol != "undefined") {
-                    sensibol.recorder.init(globalConfigObj.basepath + "/lesson.metadata")
+                    sensibol.recorder.init(basePath + "/lesson.metadata")
                         .then(function(res) {
                             console.info("Init lesson successful.", res);
                         })
