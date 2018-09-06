@@ -40,7 +40,7 @@ org.ekstep.contentrenderer.startGame = function(appInfo) {
     // If streaming is true, use realtive path of content as basepath
     globalConfig.context.streaming = true;
     if (globalConfig.context.streaming) {
-        globalConfig.basepath = content.previewUrl
+        globalConfig.basepath = appInfo.previewUrl
     }
     org.ekstep.contentrenderer.loadDefaultPlugins(function() {
         org.ekstep.contentrenderer.loadExternalPlugins(function() {
