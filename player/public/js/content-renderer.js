@@ -36,12 +36,12 @@ org.ekstep.contentrenderer.loadDefaultPlugins = function(cb) {
  * @param  {obj} appInfo [metadata]
  */
 org.ekstep.contentrenderer.startGame = function(appInfo) {
-    globalConfig.basepath = globalConfig.basepath ? globalConfig.basepath : appInfo.baseDir;
-    // If streaming is true, use realtive path of content as basepath
     globalConfig.context.streaming = true;
-    if (globalConfig.context.streaming) {
-        globalConfig.basepath = appInfo.previewUrl ? appInfo.previewUrl : globalConfig.basepath;
-    }
+    globalConfig.basepath = org.ekstep.contentrenderer.getBasePath(appInfo);
+    // globalConfig.basepath = globalConfig.basepath ? globalConfig.basepath : appInfo.baseDir;
+    // if (globalConfig.context.streaming) {
+    //     globalConfig.basepath = appInfo.previewUrl ? appInfo.previewUrl : globalConfig.basepath;
+    // }
     org.ekstep.contentrenderer.loadDefaultPlugins(function() {
         org.ekstep.contentrenderer.loadExternalPlugins(function() {
             var globalConfig = EkstepRendererAPI.getGlobalConfig();
@@ -350,5 +350,31 @@ org.ekstep.contentrenderer.device = function() {
         org.ekstep.contentrenderer.startGame(GlobalContext.config.appInfo);
     }
 };
+
+org.ekstep.contentrenderer.getBasePath = function(contentObj) {
+    var config = EkstepRendererAPI.getGlobalConfig();
+    var basePath = config.basepath || contentObj.baseDir;
+    if (config.context.streaming) {
+        // switch (contentObj.mimeType) {
+        //     case window.mimeType.ecml:
+                basePath = contentObj.previewUrl;
+                // break;
+            // case window.mimeType.html:
+            // case window.mimeType.h5p:
+                // break;
+            // case window.mimeType.epub:
+                // break;
+            // case window.mimeType.mp4:
+            // case window.mimeType.youtube:
+            // case window.mimeType.webm:
+                // break;
+            // case window.mimeType.pdf:
+                // break;
+            // case window.mimeType.xurl:
+                // break;
+        // }
+    }
+    return basePath;
+}
 
 org.ekstep.contentrenderer.init();
