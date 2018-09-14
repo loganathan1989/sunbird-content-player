@@ -354,6 +354,9 @@ org.ekstep.contentrenderer.device = function() {
 org.ekstep.contentrenderer.getBasePath = function(contentObj) {
     var config = EkstepRendererAPI.getGlobalConfig();
     var basePath = config.basepath || contentObj.baseDir;
+    if (config.context.streaming && !content.previewUrl) {
+        showToaster('error', "Content Stream Url is not available");
+    }
     switch (contentObj.mimeType) {
         case window.mimeType.ecml:
             if (config.context.streaming) {
