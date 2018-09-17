@@ -36,7 +36,10 @@ function getEntryFiles() {
     entryFiles = [{
         entryFiles: packagePlugins(),
         outputName: PACKAGE_FILE_NAME,
-    }]
+    }, {
+        entryFiles: getVendorCSS(),
+        outputName: 'plugin-vendor',
+    }, ]
     return entryPlus(entryFiles);
 }
 cleanDistFiles = function() {
@@ -100,7 +103,7 @@ function packagePlugins() {
 
 function getVendorCSS() {
     var cssDependencies = [];
-    corePlugins.forEach(function(plugin) {
+    PLUGINS.forEach(function(plugin) {
         var manifest = JSON.parse(fs.readFileSync(`${PLUGINS_BASE_PATH}${plugin}/manifest.json`));
         if (manifest.renderer.dependencies) {
             manifest.renderer.dependencies.forEach(function(dep) {
@@ -195,7 +198,18 @@ module.exports = {
                         }
                     },
                 ],
-            }
+            }, {
+                test: /\.(woff|woff2|eot|ttf|otf|svg|png)$/,
+                use: [{
+                    loader: 'file-loader',
+                    options: {
+                        name: '[name].[ext]',
+                        outputPath: './fonts/',
+                        limit: 10000,
+                        fallback: 'responsive-loader'
+                    }
+                }]
+            },
         ]
     },
     plugins: [

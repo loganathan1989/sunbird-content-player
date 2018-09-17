@@ -31,6 +31,7 @@ const FOLDER_PATHS = {
 
 };
 const APP_STYLE = [
+    './public/js/plugin-vendor.min.css',
     './public/styles/ionic.css',
     './public/styles/bookshelf_slider.css',
     './public/styles/skin02.css',
