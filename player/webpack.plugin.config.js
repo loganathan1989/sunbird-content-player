@@ -27,7 +27,14 @@ const PLUGINS = process.env.plugins || [
     "org.ekstep.telemetrysync-1.0",
     "org.ekstep.nextnavigation-1.0",
     "org.ekstep.previousnavigation-1.0",
-    "org.ekstep.genie-1.0"
+    "org.ekstep.genie-1.0",
+    "org.ekstep.ecmlrenderer-1.0",
+    "org.ekstep.htmlrenderer-1.0",
+    "org.ekstep.pdfrenderer-1.0",
+    "org.ekstep.videorenderer-1.0",
+    //"org.ekstep.epubrenderer-1.0",
+    "org.ekstep.extcontentpreview-1.0"
+
 ];
 
 let entryFiles = []
@@ -146,6 +153,13 @@ module.exports = {
                 }]
             },
             {
+                test: require.resolve(`${PLUGINS_BASE_PATH}org.ekstep.ecmlrenderer-1.0/renderer/libs/createjs.min.js`),
+                use: [{
+                    loader: 'expose-loader',
+                    options: 'createjs'
+                }]
+            },
+            {
                 test: require.resolve(`${PLUGINS_BASE_PATH}org.ekstep.toaster-1.0/renderer/libs/toastr.min.js`),
                 use: [{
                     loader: 'expose-loader',
@@ -191,7 +205,9 @@ module.exports = {
         new webpack.ProvidePlugin({
             jQuery: 'jquery',
             toastr: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.toaster-1.0/renderer/libs/toastr.min.js`),
-            CryptoJS: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.telemetrysync-1.0/renderer/libs/md5.js`)
+            CryptoJS: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.telemetrysync-1.0/renderer/libs/md5.js`),
+            createjs: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.ecmlrenderer-1.0/renderer/libs/createjs.min.js`),
+
         }),
         new UglifyJsPlugin({
             cache: false,
