@@ -21,11 +21,13 @@ const CONFIG = {
 
 const PLUGINS = process.env.plugins || [
     "org.ekstep.launcher-1.0",
+    "org.ekstep.videorenderer-1.0",
     "org.ekstep.repo-1.0",
     "org.ekstep.toaster-1.0",
     "org.ekstep.alert-1.0",
     "org.ekstep.telemetrysync-1.0",
-    "org.ekstep.htmlrenderer-1.0"
+    "org.ekstep.htmlrenderer-1.0",
+
 ];
 
 let entryFiles = []
@@ -155,6 +157,13 @@ module.exports = {
                 use: [{
                     loader: 'expose-loader',
                     options: 'toastr'
+                }]
+            },
+            {
+                test: require.resolve(`${PLUGINS_BASE_PATH}org.ekstep.videorenderer-1.0/renderer/libs/video.js`),
+                use: [{
+                    loader: 'expose-loader',
+                    options: 'videojs'
                 }]
             },
             {
