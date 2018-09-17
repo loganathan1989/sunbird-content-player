@@ -24,17 +24,17 @@ Plugin.extend({
             try {
                 plugin._constants.mimeType.forEach(function(mimetype) {
                     instance.rendererMap[mimetype] = {
-                        event: plugin._constants.events.launchEvent,	
-                        pluginId: plugin.manifest.id	
-                    };	
-                });	
-            } catch (error) {	
-                console.error("Plugin mimetype is not defined ", error);	
-            }	
+                        event: plugin._constants.events.launchEvent,
+                        pluginId: plugin.manifest.id
+                    };
+                });
+            } catch (error) {
+                console.error("Plugin mimetype is not defined ", error);
+            }
         },
-        start: function(evt, contentObj) {	
-            content = contentObj;	
-            var launcherPluginMap = this.rendererMap[content.mimeType];	
+        start: function(evt, contentObj) {
+            content = contentObj;
+            var launcherPluginMap = this.rendererMap[content.mimeType];
             if (_.isUndefined(launcherPluginMap)) return;
             // Checking if mimetype launcher is already loaded or not
             var pluginInstance = EkstepRendererAPI.getPluginObjs(launcherPluginMap.pluginId);
@@ -45,7 +45,7 @@ Plugin.extend({
                 EkstepRendererAPI.dispatchEvent(launcherPluginMap.event);
             } else {
                 // If not loaded load the launcher
-                EkstepRendererAPI.logErrorEvent({stack: "No plugin available to handle '" + content.mimeType + "' Mimetype in launch manager"}, {
+                EkstepRendererAPI.logErrorEvent({ stack: "No plugin available to handle '" + content.mimeType + "' Mimetype in launch manager" }, {
                     'severity': 'fatal',
                     'type': 'content',
                     'action': 'play'
@@ -54,22 +54,16 @@ Plugin.extend({
                     title: "Error",
                     text: "Plugin not available",
                     type: "error",
-                    data: {text: 'Plugin not available', data: "No plugin available to handle '" + content.mimeType + "' Mimetype"}
+                    data: { text: 'Plugin not available', data: "No plugin available to handle '" + content.mimeType + "' Mimetype" }
                 })
             }
             EkstepRendererAPI.dispatchEvent("renderer:player:show");
         },
         loadLauncherPlugins: function(cb) {
-            var globalConfigObj = EkstepRendererAPI.getGlobalConfig();	
-            var plugins = globalConfigObj.contentLaunchers;	
-            if (GlobalContext.config.showEndPage) {	
-                plugins.push({ "id": "org.ekstep.endpage", "ver": "1.0", "type": 'plugin' });	
-            }	
-            if (GlobalContext.config.overlay.showOverlay) {	
-                plugins.push({ "id": "org.ekstep.overlay", "ver": "1.0", "type": 'plugin' });	
-            }	
-             org.ekstep.contentrenderer.loadPlugins(plugins, [], function() {	
-                if (cb && typeof cb.target == "function") cb.target();	
+            var globalConfigObj = EkstepRendererAPI.getGlobalConfig();
+            var plugins = globalConfigObj.contentLaunchers;
+            org.ekstep.contentrenderer.loadPlugins(plugins, [], function() {
+                if (cb && typeof cb.target == "function") cb.target();
             });
         }
     })

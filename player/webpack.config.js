@@ -1,5 +1,5 @@
-const BUILD_NUMBER = process.env.build_number;
-const PLAYER_VER = process.env.player_version_number;
+const BUILD_NUMBER = process.env.build_number || 1;
+const PLAYER_VER = process.env.player_version_number || 1;
 
 // Required dependency files
 const path = require('path');

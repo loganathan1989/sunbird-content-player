@@ -25,12 +25,7 @@ const PLUGINS = process.env.plugins || [
     "org.ekstep.toaster-1.0",
     "org.ekstep.alert-1.0",
     "org.ekstep.telemetrysync-1.0",
-    "org.ekstep.nextnavigation-1.0",
-    "org.ekstep.previousnavigation-1.0",
-    "org.ekstep.genie-1.0",
-    "org.ekstep.htmlrenderer-1.0",
-    "org.ekstep.videorenderer-1.0",
-
+    "org.ekstep.htmlrenderer-1.0"
 ];
 
 let entryFiles = []
@@ -202,8 +197,6 @@ module.exports = {
             jQuery: 'jquery',
             toastr: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.toaster-1.0/renderer/libs/toastr.min.js`),
             CryptoJS: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.telemetrysync-1.0/renderer/libs/md5.js`),
-            createjs: path.resolve(`${PLUGINS_BASE_PATH}org.ekstep.ecmlrenderer-1.0/renderer/libs/createjs.min.js`),
-
         }),
         new UglifyJsPlugin({
             cache: false,

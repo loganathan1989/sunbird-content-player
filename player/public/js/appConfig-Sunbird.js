@@ -36,69 +36,36 @@ AppConfig = {
             id: 'org.ekstep.htmlrenderer',
             ver: 1.0,
             type: 'plugin'
-        }, {
-            mimeType: ['application/vnd.ekstep.ecml-archive'],
-            id: 'org.ekstep.ecmlrenderer',
-            ver: 1.0,
-            type: 'plugin'
-        },
-        {
-            mimeType: ['application/epub'],
-            id: 'org.ekstep.epubrenderer',
-            ver: 1.0,
-            type: 'plugin'
         },
         {
             mimeType: ['video/mp4', 'video/x-youtube', 'video/webm'],
             id: 'org.ekstep.videorenderer',
             ver: 1.0,
             type: 'plugin'
-        },
-        {
-            mimeType: ['application/pdf'],
-            id: 'org.ekstep.pdfrenderer',
-            ver: 1.0,
-            type: 'plugin'
-        },
-        {
-            mimeType: ['text/x-url'],
-            id: 'org.ekstep.extcontentpreview',
-            ver: 1.0,
-            type: 'plugin'
         }
     ],
     assetbase: 'assets/icons/',
-    defaultPlugins: [
-        {
-            id: 'org.ekstep.launcher',
-            ver: 1.0,
-            type: 'plugin'
-        }, {
-            id: 'org.ekstep.repo',
-            ver: 1.0,
-            type: 'plugin'
-        },{
-            id:"org.ekstep.telemetrysync",
-            ver:1.0,
-            type:'plugin'
-        },{
-            id:"org.ekstep.toaster",
-            ver:1.0,
-            type:'plugin'
-        },{
-            id:"org.ekstep.alert",
-            ver:1.0,
-            type:'plugin'
-        },{
-            id:"org.sunbird.player.endpage",
-            ver:1.1,
-            type:'plugin'
-        },{
-            id:"org.sunbird.player.userswitcher",
-            ver:1.0,
-            type:'plugin'
-        }
-    ],
+    defaultPlugins: [{
+        id: 'org.ekstep.launcher',
+        ver: 1.0,
+        type: 'plugin'
+    }, {
+        id: 'org.ekstep.repo',
+        ver: 1.0,
+        type: 'plugin'
+    }, {
+        id: "org.ekstep.telemetrysync",
+        ver: 1.0,
+        type: 'plugin'
+    }, {
+        id: "org.ekstep.toaster",
+        ver: 1.0,
+        type: 'plugin'
+    }, {
+        id: "org.ekstep.alert",
+        ver: 1.0,
+        type: 'plugin'
+    }],
     overlay: {
         enableUserSwitcher: false,
         showUser: false,
