@@ -8,10 +8,11 @@
     "renderer": {
         "main": "renderer/plugin.js",
         "dependencies": [
-            {"type": "js", "src": "renderer/libs/video.js"},
-            {"type": "css", "src": "renderer/libs/videojs.css"},
-            {"type": "css", "src": "renderer/libs/style.css"},
-            {"type": "js", "src": "renderer/libs/videoyoutube.js"}
+            { "type": "css", "src": "renderer/libs/azuremediaplayer.css" },
+            { "type": "css", "src": "renderer/libs/style.css" },
+            { "type": "js", "src": "renderer/libs/azuremediaplayer.js" },
+            { "type": "js", "src": "renderer/libs/video.js" },
+            { "type": "css", "src": "renderer/libs/videojs.css" }
         ]
     },
     "dependencies": [

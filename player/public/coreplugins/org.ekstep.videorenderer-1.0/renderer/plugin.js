@@ -8,15 +8,15 @@ org.ekstep.contentrenderer.baseLauncher.extend({
     currentTime: 1,
     videoPlayer: undefined,
     stageId: undefined,
-    heartBeatData:{},
-    enableHeartBeatEvent:false,
+    heartBeatData: {},
+    enableHeartBeatEvent: false,
     _constants: {
-        mimeType: ["video/mp4", "video/x-youtube", "video/webm"],	
-        events: {	
-            launchEvent: "renderer:launch:video"	
-        }	
-    },	
-    initLauncher: function() {	
+        mimeType: ["video/mp4", "video/x-youtube", "video/webm"],
+        events: {
+            launchEvent: "renderer:launch:video"
+        }
+    },
+    initLauncher: function() {
         EkstepRendererAPI.addEventListener(this._constants.events.launchEvent, this.start, this);
         EkstepRendererAPI.addEventListener("renderer:overlay:mute", this.onOverlayAudioMute, this);
         EkstepRendererAPI.addEventListener("renderer:overlay:unmute", this.onOverlayAudioUnmute, this);
@@ -40,27 +40,68 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         video = document.createElement('video');
         video.style.width = '100%';
         video.style.height = '100%';
+        video.id = this.manifest.id
+            // video.className = "video-js vjs-default-skin";
         video.controls = true;
+        video['data-setup'] = "";
         if (window.cordova) video.controlsList = 'nodownload';
         video.autoplay = true;
         video.preload = "auto";
-        video.className = 'video-js vjs-default-skin';
+        video.className = 'azuremediaplayer amp-default-skin"';
         this.addToGameArea(video);
         EkstepRendererAPI.dispatchEvent("renderer:content:start");
         data.mimeType === 'video/x-youtube' ? this._loadYoutube(data.artifactUrl) : this._loadVideo(path);
         video.onvolumechange = function() {
-            (video.muted) ? EkstepRendererAPI.dispatchEvent('renderer:overlay:mute') : EkstepRendererAPI.dispatchEvent('renderer:overlay:unmute');
+            (video.muted) ? EkstepRendererAPI.dispatchEvent('renderer:overlay:mute'): EkstepRendererAPI.dispatchEvent('renderer:overlay:unmute');
         };
-        $("video").bind("contextmenu",function() {
+        $("video").bind("contextmenu", function() {
             return false;
         });
     },
     _loadVideo: function(path) {
-        var source = document.createElement("source");
-        source.src = path;
-        video.appendChild(source);
-        this.addvideoListeners(video);
-        this.videoPlayer = video;
+        // var source = document.createElement("source");
+        // source.src = "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_112465797420736512143/samplevideo_1280x720_30mb_177_1524034444.mp4"
+        // video.appendChild(source);
+        // this.addvideoListeners(video);
+        // this.videoPlayer = video;
+        // var player = videojs(this.manifest.id);
+
+        // player.ready(function() {
+        //     player.src({
+        //         // src: "https://ekstep-public-dev.s3-ap-south-1.amazonaws.com/assets/do_112465797420736512143/samplevideo_1280x720_30mb_177_1524034444.mp4",
+        //         src: 'http://sunbirdspikemedia-inct.streaming.media.azure.net/afcc5a99-d0c4-4ef5-9dfe-dc403a1269fb/learn-colors-with-numbers-in-kid.ism/manifest(format=mpd-time-csf)',
+
+        //         type: 'application/dash+xml'
+        //     });
+
+        //     player.play();
+        // });
+
+        // jQuery(this.manifest.id).addClass("azuremediaplayer amp-default-skin")
+        try {
+            var myPlayer = amp(this.manifest.id, { /* Options */
+                techOrder: ["azureHtml5JS", "flashSS", "html5FairPlayHLS", "silverlightSS", "html5"],
+                "nativeControlsForTouch": false,
+                autoplay: false,
+                controls: true,
+                width: "640",
+                height: "400",
+                poster: ""
+            }, function() {
+                console.log('Good to go!');
+                // add an event listener
+                this.addEventListener('ended', function() {
+                    console.log('Finished!');
+                })
+            });
+            myPlayer.src([{
+                src: "http://sunbirdspikemedia-inct.streaming.media.azure.net/afcc5a99-d0c4-4ef5-9dfe-dc403a1269fb/learn-colors-with-numbers-in-kid.ism/manifest(format=m3u8-aapl)"
+            }]);
+            this.addvideoListeners(video);
+            this.videoPlayer = video;
+        } catch (e) {
+            console.error("Fails to play video", e)
+        }
     },
     _loadYoutube: function(path) {
         var instance = this;
@@ -70,7 +111,7 @@ org.ekstep.contentrenderer.baseLauncher.extend({
                 'action': 'play',
                 'severity': 'error'
             });
-            instance.throwError({message:'Please connect to internet'});
+            instance.throwError({ message: 'Please connect to internet' });
         }
         var vid = videojs(instance.manifest.id, {
                 "techOrder": ["youtube"],
@@ -88,9 +129,9 @@ org.ekstep.contentrenderer.baseLauncher.extend({
             instance.addYOUTUBEListeners(youtubeInstance);
             instance.setYoutubeStyles(youtubeInstance);
             instance.videoPlayer = youtubeInstance;
-            youtubeInstance.on('volumechange', function(){
-                (youtubeInstance.muted()) ? EkstepRendererAPI.dispatchEvent('renderer:overlay:mute') : EkstepRendererAPI.dispatchEvent('renderer:overlay:unmute');
-              })
+            youtubeInstance.on('volumechange', function() {
+                (youtubeInstance.muted()) ? EkstepRendererAPI.dispatchEvent('renderer:overlay:mute'): EkstepRendererAPI.dispatchEvent('renderer:overlay:unmute');
+            })
         });
     },
     setYoutubeStyles: function(youtube) {
@@ -150,11 +191,11 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         var instance = this;
 
         videoPlayer.onplay = function(e) {
-            instance.play("videostage", Math.floor(instance.videoPlayer.timeStamp)*1000);
+            instance.play("videostage", Math.floor(instance.videoPlayer.timeStamp) * 1000);
         };
 
         videoPlayer.onpause = function(e) {
-            instance.pause("videostage", Math.floor(instance.videoPlayer.timeStamp)*1000);
+            instance.pause("videostage", Math.floor(instance.videoPlayer.timeStamp) * 1000);
         };
 
         videoPlayer.onended = function(e) {
@@ -162,7 +203,7 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         };
 
         videoPlayer.onseeked = function(e) {
-            instance.seeked("videostage", Math.floor(instance.videoPlayer.timeStamp)*1000);
+            instance.seeked("videostage", Math.floor(instance.videoPlayer.timeStamp) * 1000);
         };
 
     },
@@ -170,27 +211,27 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         var instance = this;
 
         videoPlayer.on('play', function(e) {
-            instance.play("youtubestage", Math.floor(videoPlayer.currentTime())*1000);
+            instance.play("youtubestage", Math.floor(videoPlayer.currentTime()) * 1000);
         });
 
         videoPlayer.on('pause', function(e) {
-            instance.pause("youtubestage", Math.floor(videoPlayer.currentTime())*1000);
+            instance.pause("youtubestage", Math.floor(videoPlayer.currentTime()) * 1000);
         });
 
         videoPlayer.on('ended', function() {
             instance.ended("youtubestage");
         });
         videoPlayer.on('seeked', function(e) {
-            instance.seeked("youtubestage", Math.floor(videoPlayer.currentTime())*1000);
+            instance.seeked("youtubestage", Math.floor(videoPlayer.currentTime()) * 1000);
         });
     },
     logTelemetry: function(type, eksData) {
         EkstepRendererAPI.getTelemetryService().interact(type || 'TOUCH', "", "", eksData);
     },
-    replay:function(){
+    replay: function() {
         if (this.sleepMode) return;
-       EkstepRendererAPI.dispatchEvent('renderer:overlay:unmute');
-       this.start();
+        EkstepRendererAPI.dispatchEvent('renderer:overlay:unmute');
+        this.start();
     },
     configOverlay: function() {
         setTimeout(function() {
@@ -232,8 +273,8 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         }
     },
     onOverlayAudioUnmute: function() {
-    	if (!this.videoPlayer) return false
-        if(this.videoPlayer.currentType_ === 'video/youtube') {
+        if (!this.videoPlayer) return false
+        if (this.videoPlayer.currentType_ === 'video/youtube') {
             if (this.videoPlayer.muted()) {
                 this.videoPlayer.muted(false);
             }
@@ -242,7 +283,7 @@ org.ekstep.contentrenderer.baseLauncher.extend({
         }
     },
     cleanUp: function() {
-        if (this.sleepMode) return;	
+        if (this.sleepMode) return;
         this.sleepMode = true;
         if (document.getElementById(this.manifest.id)) {
             videojs(this.manifest.id).dispose();
