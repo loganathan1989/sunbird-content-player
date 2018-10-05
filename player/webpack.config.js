@@ -6,8 +6,8 @@
  */
 
 
-const BUILD_NUMBER = process.env.build_number;
-const PLAYER_VER = process.env.player_version_number;
+const BUILD_NUMBER = process.env.build_number || 1;
+const PLAYER_VER = process.env.player_version_number || 1;
 const FILTER_PLUGINS = process.env.filter_plugins || 'false'; // To seperate the plugins for ekstep and sunbird.
 
 // Required dependency files
@@ -27,6 +27,7 @@ const replace = require('replace-in-file');
 const file_extra = require('fs-extra')
 var WebpackOnBuildPlugin = require('on-build-webpack');
 const APP_CONFIG = require('./build.config.js')
+const nsg = require('node-sprite-generator');
 
 const CONSTANTS = {
     build_folder_name: 'player-build',
@@ -218,6 +219,7 @@ module.exports = (env, argv) => {
                 filename: `[name].min.${VERSION}.css`,
             }),
             new WebpackOnBuildPlugin(function(stats) {
+                generateImageSpriteSheet();
                 replaceStringInFiles(env.channel);
                 copyCorePlugins(env.channel);
             }),
@@ -312,5 +314,57 @@ function replaceStringInFiles(channel) {
             .catch(err => {
                 console.error("Error occurred", err)
             })
+    });
+}
+
+function generateImageSpriteSheet() {
+    var fs = require('fs');
+    var Spritesmith = require('spritesmith');
+    // Generate our spritesheet
+    Spritesmith.run({
+        src: [
+            "./public/assets/icons/audio_icon.png",
+            "./public/assets/icons/audio_mute_icon.png",
+            "./public/assets/icons/avatar_anonymous.png",
+            "./public/assets/icons/avatar_normal_1.png",
+            "./public/assets/icons/avatar_normal_2.png",
+            "./public/assets/icons/avatar_normal_3.png",
+            "./public/assets/icons/background_1.png",
+            "./public/assets/icons/banner1.png",
+            "./public/assets/icons/banner2.png",
+            "./public/assets/icons/banner3.png",
+            "./public/assets/icons/blank.png",
+            "./public/assets/icons/btn_credits.png",
+            "./public/assets/icons/ccby.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+            "./public/assets/icons/check.png",
+
+
+        ],
+        padding: 20 // Exaggerated for visibility, normally 1 or 2
+    }, function handleResult(err, result) {
+        // If there was an error, throw it
+        if (err) {
+            throw err;
+        }
+        fs.writeFileSync(__dirname + '/player_sprite_image.png', result.image);
+        fs.writeFileSync(__dirname + '/player_sprite_image_coordinates.txt', JSON.stringify(result.coordinates));
+        console.log(result.coordinates, result.properties); // Coordinates and properties
     });
 }
