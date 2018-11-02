@@ -82,7 +82,6 @@ org.ekstep.contentrenderer.baseLauncher.extend({
                 'severity': 'error'
             });
             instance.throwError({message: instance.messages.noInternetConnection});
-            if (typeof cordova !== "undefined") exitApp();
             return false;
         }
         var source = document.createElement("source");
