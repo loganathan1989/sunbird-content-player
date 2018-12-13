@@ -31,6 +31,7 @@ var ThemePlugin = Plugin.extend({
     _isSceneChanging: false,
     _saveState: true,
     _basePath: undefined,
+    _isStageReloaded: false,
     initPlugin: function(data) {
         this.addLoaderElement();
         this._controllerMap = {};

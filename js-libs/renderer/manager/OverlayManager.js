@@ -282,6 +282,9 @@ OverlayManager = {
             });
             if (navParam) stageId = navParam.value;
         }
+        if(navType == 'next' && !_.isUndefined(Renderer.theme) && !_.isUndefined(Renderer.theme._isStageReloaded)){
+            Renderer.theme._isStageReloaded = false;
+        }
         return stageId;
     },
     defaultSubmit: function() {

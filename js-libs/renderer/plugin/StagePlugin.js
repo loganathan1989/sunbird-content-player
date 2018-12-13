@@ -97,13 +97,23 @@ var StagePlugin = Plugin.extend({
                             instance.invokeRenderElements();
                         }
                     }, instance.maxTimeToLoad)
+                    this.checkAndTriggerReload()
                     instance.timeInstance[data.id] = timeInst;
                 }
             }, 500)
             this.timeInstance[data.id] = timeInst;
             return
+        } else{
+            this.checkAndTriggerReload()
         }
         this.invokeChildren(data, this, this, this._theme);
+    },
+    checkAndTriggerReload: function(){
+        if(!_.isUndefined(Renderer.theme) && !_.isUndefined(Renderer.theme._isStageReloaded) && Renderer.theme._isStageReloaded == false){
+            console.log("calling stage reload");
+            EventBus.dispatch('actionReload');
+            Renderer.theme._isStageReloaded = true;
+        }
     },
     destroyTimeInstance: function(data) {
         if (Renderer.theme && Renderer.theme.getStagesToPreLoad) {
